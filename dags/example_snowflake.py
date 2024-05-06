@@ -12,7 +12,7 @@ from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator, S
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 
-SNOWFLAKE_CONN_ID = "snow_conn_test"
+SNOWFLAKE_CONN_ID = "snow_devtest"
 SNOWFLAKE_SAMPLE_TABLE = "sample_table"
 
 # SQL commands
