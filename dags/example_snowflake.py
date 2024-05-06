@@ -42,16 +42,18 @@ with DAG(
         sql=CREATE_TABLE_SQL_STRING
     )
 
-    def print_insert(SQL_INSERT_STATEMENT, SQL_LIST):
+    def print_insert(SQL_INSERT_STATEMENT, SQL_LIST,SQL_MULTIPLE_STMTS):
         print(":: insert statement :::")
         print(SQL_INSERT_STATEMENT)
         print(":: insert list :::")
         print(SQL_LIST)
+        print("::: SQL Multiple SRMTS")
+        print(SQL_MULTIPLE_STMTS)
 
     print_insert = PythonOperator(
         task_id="print_insert",
         python_callable=print_insert,
-        op_kwargs={'SQL_INSERT_STATEMENT': SQL_INSERT_STATEMENT, 'SQL_LIST':SQL_LIST}
+        op_kwargs={'SQL_INSERT_STATEMENT': SQL_INSERT_STATEMENT, 'SQL_LIST':SQL_LIST, 'SQL_MULTIPLE_STMTS':SQL_MULTIPLE_STMTS}
     )
     insert_record = SnowflakeOperator(
         task_id="insert_record",
