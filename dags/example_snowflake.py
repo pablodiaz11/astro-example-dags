@@ -43,8 +43,9 @@ with DAG(
     )
 
     def print_insert(SQL_INSERT_STATEMENT, SQL_LIST):
+        print(":: insert statement :::")
         print(SQL_INSERT_STATEMENT)
-        print("")
+        print(":: insert list :::")
         print(SQL_LIST)
 
     print_insert = PythonOperator(
@@ -52,11 +53,11 @@ with DAG(
         python_callable=print_insert,
         op_kwargs={'SQL_INSERT_STATEMENT': SQL_INSERT_STATEMENT, 'SQL_LIST':SQL_LIST}
     )
-    # snowflake_op_with_params = SnowflakeOperator(
-    #     task_id="snowflake_op_with_params",
-    #     sql=SQL_INSERT_STATEMENT,
-    #     parameters={"id": 56},
-    # )
+    insert_record = SnowflakeOperator(
+        task_id="insert_record",
+        sql=SQL_INSERT_STATEMENT,
+        parameters={"id": 56},
+    )
 
     # snowflake_op_sql_list = SnowflakeOperator(task_id="snowflake_op_sql_list", sql=SQL_LIST)
 
@@ -85,7 +86,7 @@ with DAG(
     end = EmptyOperator(task_id="end")
 
     (
-        start >> create_table >> print_insert >> end
+        start >> create_table >> print_insert >> insert_record >> end
         # >> [
         #     snowflake_op_with_params,
         #     snowflake_op_sql_list,
