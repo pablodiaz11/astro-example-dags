@@ -9,6 +9,8 @@ from datetime import datetime
 
 from airflow import DAG
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator, SnowflakeSqlApiOperator
+from airflow.operators.empty import EmptyOperator
+from airflow.operators.python import PythonOperator
 
 SNOWFLAKE_CONN_ID = "snow_conn_test"
 SNOWFLAKE_SAMPLE_TABLE = "sample_table"
@@ -32,9 +34,24 @@ with DAG(
     schedule=None,
     catchup=False,
 ) as dag:
+    # Star process
+    start = EmptyOperator(task_id="start")
     # [START howto_operator_snowflake]
-    snowflake_op_sql_str = SnowflakeOperator(task_id="snowflake_op_sql_str", sql=CREATE_TABLE_SQL_STRING)
+    create_table = SnowflakeOperator(
+        task_id="create_table", 
+        sql=CREATE_TABLE_SQL_STRING
+    )
 
+    def print_insert(SQL_INSERT_STATEMENT, SQL_LIST):
+        print(SQL_INSERT_STATEMENT)
+        print("")
+        print(SQL_LIST)
+
+    print_insert = PythonOperator(
+        task_id="print_insert",
+        python_callable=print_insert,
+        op_kwargs={'SQL_INSERT_STATEMENT': SQL_INSERT_STATEMENT, 'SQL_LIST':SQL_LIST}
+    )
     # snowflake_op_with_params = SnowflakeOperator(
     #     task_id="snowflake_op_with_params",
     #     sql=SQL_INSERT_STATEMENT,
@@ -64,8 +81,11 @@ with DAG(
     # )
     # [END howto_snowflake_sql_api_operator]
 
+    # End Process
+    end = EmptyOperator(task_id="end")
+
     (
-        snowflake_op_sql_str
+        start >> create_table >> print_insert >> end
         # >> [
         #     snowflake_op_with_params,
         #     snowflake_op_sql_list,
