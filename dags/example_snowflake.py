@@ -59,7 +59,10 @@ with DAG(
         parameters={"id": 56},
     )
 
-    # snowflake_op_sql_list = SnowflakeOperator(task_id="snowflake_op_sql_list", sql=SQL_LIST)
+    insert_list = SnowflakeOperator(
+        task_id="insert_list", 
+        sql=SQL_LIST
+    )
 
     # snowflake_op_sql_multiple_stmts = SnowflakeOperator(
     #     task_id="snowflake_op_sql_multiple_stmts",
@@ -86,7 +89,7 @@ with DAG(
     end = EmptyOperator(task_id="end")
 
     (
-        start >> create_table >> print_insert >> insert_record >> end
+        start >> create_table >> print_insert >> insert_record >> insert_list >> end
         # >> [
         #     snowflake_op_with_params,
         #     snowflake_op_sql_list,
