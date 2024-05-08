@@ -5,6 +5,7 @@ from datetime import datetime
 
 from airflow import DAG
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator, SnowflakeSqlApiOperator
+from airflow.providers.snowflake.operators.sql import SQLExecuteQueryOperator
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 
@@ -27,7 +28,7 @@ with DAG(
     # Star process
     begin = EmptyOperator(task_id="begin")
 
-    populate_interaction_company = SnowflakeOperator(
+    populate_interaction_company = SQLExecuteQueryOperator(
         task_id="populate_interaction_company",
         sql=SQL_CALL_SP
     )
