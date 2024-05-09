@@ -24,11 +24,11 @@ default_args={
 
 with DAG(
     DAG_ID,
-    start_date=datetime(2024, 1, 1, tzinfo=local_tz),
-    default_args={"snowflake_conn_id": SNOWFLAKE_CONN_ID},
-    tags=["snowflake_sp"],
-    schedule=None,
-    catchup=False,
+    start_date = datetime(2024, 1, 1, tzinfo=local_tz),
+    default_args = default_args,
+    tags = ["snowflake_sp"],
+    schedule = None,
+    catchup = False,
 ) as dag:
     # Star process
     begin = EmptyOperator(task_id="begin")
