@@ -5,7 +5,6 @@ from datetime import datetime
 
 from airflow import DAG
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator, SnowflakeSqlApiOperator
-from airflow.providers.snowflake.operators.sql import SQLExecuteQueryOperator
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 
@@ -13,9 +12,6 @@ DAG_ID = "dag_call_snowflake_sp"
 SNOWFLAKE_CONN_ID = "snow_devtest"
 #SNOWFLAKE_SP = "ODS.META_DATA.POPULATE_INTERACTION_COMPANY"
 SNOWFLAKE_SP = "STAGE.SP_PROCESS_RUN_END"
-
-#SQL_CALL_SP = f"call {SNOWFLAKE_SP}('RUN_DATE' TIMESTAMP_TZ(9))"
-SQL_CALL_SP = f"call {SNOWFLAKE_SP}('2023-09-27','S&P API','Failed')"
 
 with DAG(
     DAG_ID,
@@ -28,9 +24,19 @@ with DAG(
     # Star process
     begin = EmptyOperator(task_id="begin")
 
-    populate_interaction_company = SQLExecuteQueryOperator(
+    params = {
+        'feed_date':'2023-09-27',
+        'process_name':'S&P API',
+        'status':'Failed'
+    }
+
+    #SQL_CALL_SP = f"call {SNOWFLAKE_SP}('RUN_DATE' TIMESTAMP_TZ(9))"
+    SQL_CALL_SP = f"call {SNOWFLAKE_SP}(:feed_date,:process_name,:status)"
+
+    populate_interaction_company = SnowflakeOperator(
         task_id="populate_interaction_company",
-        sql=SQL_CALL_SP
+        sql=SQL_CALL_SP,
+        parameters=params
     )
 
     end = EmptyOperator(task_id="end")
