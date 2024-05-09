@@ -31,7 +31,7 @@ with DAG(
     }
 
     #SQL_CALL_SP = f"call {SNOWFLAKE_SP}('RUN_DATE' TIMESTAMP_TZ(9))"
-    SQL_CALL_SP = f"call {SNOWFLAKE_SP}(?, ?, ?)"
+    SQL_CALL_SP = f"call {SNOWFLAKE_SP}(TO_DATE(?, 'YYYY-MM-DD'), ?, ?)"
 
     populate_interaction_company = SnowflakeOperator(
         task_id="populate_interaction_company",
