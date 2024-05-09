@@ -25,21 +25,23 @@ with DAG(
     begin = EmptyOperator(task_id="begin")
 
     params = {
-        'feed_date':"'2023-09-27'",
-        'process_name':"'S&P API'",
-        'status':"'Failed'"
+        'feed_date':"2023-09-27",
+        'process_name':"S&P API",
+        'status':"Failed"
     }
 
     #SQL_CALL_SP = f"call {SNOWFLAKE_SP}('RUN_DATE' TIMESTAMP_TZ(9))"
-    #SQL_CALL_SP = f"call {SNOWFLAKE_SP}(%(feed_date)s, %(process_name)s, %(status)s)"
-    SQL_CALL_SP = f"call {SNOWFLAKE_SP}('2023-09-27', 'S&P API', 'Failed')"
-    #SQL_CALL_SP = "call stage.usp_poc('Hi')"
+    # SQL_CALL_SP = f"call {SNOWFLAKE_SP}(?, ?, ?)"
+    SQL_CALL_SP = f"call {SNOWFLAKE_SP}(%(feed_date)s, %(process_name)s, %(status)s)"
+    #SQL_CALL_SP = f"call {SNOWFLAKE_SP}('2023-09-27', 'S&P API', 'Failed')"
 
     populate_interaction_company = SnowflakeOperator(
-        task_id="populate_interaction_company",
-        sql=SQL_CALL_SP,
-        autocommit=True,
+        task_id = "populate_interaction_company",
+        sql = SQL_CALL_SP,
+        autocommit = True,
+        # parameters = params,
         #parameters= {"feed_date":"2023-09-27","process_name":"S&P API","status":"Failed"}, #[params['feed_date'], params['process_name'],params['status']],
+        parameters = [params['feed_date'], params['process_name'],params['status']],
     )
 
     end = EmptyOperator(task_id="end")
