@@ -8,7 +8,7 @@ from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
 import pendulum
 
-local_tz = pendulum.timezone("America/New York")
+local_tz = pendulum.timezone("America/New_York")
 DAG_ID = "dag_call_snowflake_sp"
 SNOWFLAKE_CONN_ID = "snow_devtest"
 #SNOWFLAKE_SP = "ODS.META_DATA.POPULATE_INTERACTION_COMPANY"
