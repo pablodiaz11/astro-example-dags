@@ -1,21 +1,30 @@
 from __future__ import annotations
-
 import os
-from datetime import datetime
-
+from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator, SnowflakeSqlApiOperator
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
+from airflow.operators.bash import BashOperator
+import pendulum
 
+local_tz = pendulum.timezone("America/New York")
 DAG_ID = "dag_call_snowflake_sp"
 SNOWFLAKE_CONN_ID = "snow_devtest"
 #SNOWFLAKE_SP = "ODS.META_DATA.POPULATE_INTERACTION_COMPANY"
 SNOWFLAKE_SP = "STAGE.SP_PROCESS_RUN_END"
 
+default_args={
+    'email': ['pablo.diaz@moelis.com'],
+    'email_on_failure': True,
+    "snowflake_conn_id": SNOWFLAKE_CONN_ID,
+    "retries": 1,
+    'retry_delay': timedelta(seconds=10),
+}
+
 with DAG(
     DAG_ID,
-    start_date=datetime(2021, 1, 1),
+    start_date=datetime(2024, 1, 1, tzinfo=local_tz),
     default_args={"snowflake_conn_id": SNOWFLAKE_CONN_ID},
     tags=["snowflake_sp"],
     schedule=None,
@@ -42,8 +51,22 @@ with DAG(
         #parameters = [params['feed_date'], params['process_name'],params['status']],
     )
 
+    incremental_sp_run = SnowflakeOperator(
+        task_id = "incremental_sp_run",
+        sql = SQL_CALL_SP,
+        autocommit = True,
+        parameters = params,
+    )
+
+    incremental_load_target = SnowflakeOperator(
+        task_id = "incremental_load_target",
+        sql = SQL_CALL_SP,
+        autocommit = True,
+        parameters = params,
+    )
+
     end = EmptyOperator(task_id="end")
 
     (
-        begin >> populate_interaction_company >> end
+        begin >> populate_interaction_company >> incremental_sp_run >> incremental_load_target >> end
     )
