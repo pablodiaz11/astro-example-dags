@@ -11,7 +11,7 @@ from airflow.operators.python import PythonOperator
 DAG_ID = "dag_call_snowflake_sp"
 SNOWFLAKE_CONN_ID = "snow_devtest"
 #SNOWFLAKE_SP = "ODS.META_DATA.POPULATE_INTERACTION_COMPANY"
-SNOWFLAKE_SP = "STAGE.SP_PROCESS_RUN_END_v3"
+SNOWFLAKE_SP = "STAGE.SP_PROCESS_RUN_END"
 
 with DAG(
     DAG_ID,
@@ -38,6 +38,7 @@ with DAG(
     populate_interaction_company = SnowflakeOperator(
         task_id="populate_interaction_company",
         sql=SQL_CALL_SP,
+        autocommit=True,
         #parameters= {"feed_date":"2023-09-27","process_name":"S&P API","status":"Failed"}, #[params['feed_date'], params['process_name'],params['status']],
     )
 
