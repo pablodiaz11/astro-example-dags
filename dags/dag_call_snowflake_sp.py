@@ -31,12 +31,12 @@ with DAG(
     }
 
     #SQL_CALL_SP = f"call {SNOWFLAKE_SP}('RUN_DATE' TIMESTAMP_TZ(9))"
-    SQL_CALL_SP = f"call {SNOWFLAKE_SP}(:feed_date,:process_name,:status)"
+    SQL_CALL_SP = f"call {SNOWFLAKE_SP}(?, ?, ?)"
 
     populate_interaction_company = SnowflakeOperator(
         task_id="populate_interaction_company",
         sql=SQL_CALL_SP,
-        parameters=params
+        parameters=[params['feed_date'], params['process_name'],params['status']],
     )
 
     end = EmptyOperator(task_id="end")
