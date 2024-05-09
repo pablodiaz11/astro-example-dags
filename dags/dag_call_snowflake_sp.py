@@ -33,14 +33,12 @@ with DAG(
     #SQL_CALL_SP = f"call {SNOWFLAKE_SP}('RUN_DATE' TIMESTAMP_TZ(9))"
     #SQL_CALL_SP = f"call {SNOWFLAKE_SP}(?, ?, ?)"
     SQL_CALL_SP = f"call {SNOWFLAKE_SP}(%(feed_date)s, %(process_name)s, %(status)s)"
-    #SQL_CALL_SP = f"call {SNOWFLAKE_SP}('2023-09-27', 'S&P API', 'Failed')"
 
     populate_interaction_company = SnowflakeOperator(
         task_id = "populate_interaction_company",
         sql = SQL_CALL_SP,
         autocommit = True,
         parameters = params,
-        #parameters= {"feed_date":"2023-09-27","process_name":"S&P API","status":"Failed"}, 
         #parameters = [params['feed_date'], params['process_name'],params['status']],
     )
 
