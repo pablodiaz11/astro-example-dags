@@ -11,7 +11,7 @@ from airflow.operators.python import PythonOperator
 DAG_ID = "dag_call_snowflake_sp"
 SNOWFLAKE_CONN_ID = "snow_devtest"
 #SNOWFLAKE_SP = "ODS.META_DATA.POPULATE_INTERACTION_COMPANY"
-SNOWFLAKE_SP = "STAGE.SP_PROCESS_RUN_END_v2"
+SNOWFLAKE_SP = "STAGE.SP_PROCESS_RUN_END_v3"
 
 with DAG(
     DAG_ID,
