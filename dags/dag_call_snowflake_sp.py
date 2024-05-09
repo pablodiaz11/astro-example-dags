@@ -62,7 +62,8 @@ with DAG(
         task_id = "incremental_load_target",
         sql = SQL_CALL_SP,
         autocommit = True,
-        parameters = params,
+        # parameters = params,
+        parameters = [params['feed_date'], params['process_name'],params['status']],
     )
 
     end = EmptyOperator(task_id="end")
