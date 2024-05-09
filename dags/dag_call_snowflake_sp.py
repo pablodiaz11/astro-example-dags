@@ -25,9 +25,9 @@ with DAG(
     begin = EmptyOperator(task_id="begin")
 
     params = {
-        'feed_date':"2023-09-27",
-        'process_name':"S&P API",
-        'status':"Failed"
+        'feed_date':"'2023-09-27'",
+        'process_name':"'S&P API'",
+        'status':"'Failed'"
     }
 
     #SQL_CALL_SP = f"call {SNOWFLAKE_SP}('RUN_DATE' TIMESTAMP_TZ(9))"
