@@ -11,7 +11,7 @@ from airflow.operators.python import PythonOperator
 DAG_ID = "dag_call_snowflake_sp"
 SNOWFLAKE_CONN_ID = "snow_devtest"
 #SNOWFLAKE_SP = "ODS.META_DATA.POPULATE_INTERACTION_COMPANY"
-SNOWFLAKE_SP = "STAGE.SP_PROCESS_RUN_END"
+SNOWFLAKE_SP = "STAGE.SP_PROCESS_RUN_END_v2"
 
 with DAG(
     DAG_ID,
@@ -32,8 +32,8 @@ with DAG(
 
     #SQL_CALL_SP = f"call {SNOWFLAKE_SP}('RUN_DATE' TIMESTAMP_TZ(9))"
     #SQL_CALL_SP = f"call {SNOWFLAKE_SP}(%(feed_date)s, %(process_name)s, %(status)s)"
-    #SQL_CALL_SP = f"call {SNOWFLAKE_SP}('2023-09-27', 'S&P API', 'Failed')"
-    SQL_CALL_SP = "call stage.usp_poc('Hi')"
+    SQL_CALL_SP = f"call {SNOWFLAKE_SP}('2023-09-27', 'S&P API', 'Failed')"
+    #SQL_CALL_SP = "call stage.usp_poc('Hi')"
 
     populate_interaction_company = SnowflakeOperator(
         task_id="populate_interaction_company",
