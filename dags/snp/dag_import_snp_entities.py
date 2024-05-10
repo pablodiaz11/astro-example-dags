@@ -31,9 +31,9 @@ with DAG(
     # Star process
     begin = EmptyOperator(task_id="begin")
 
-    import_snp_entities = SnowflakeOperator(
+    import_snp_entities = BashOperator(
         task_id = "import_snp_entities",
-        sql = "select 1 as id",
+        bash_command = "pwd",
     )
 
     end = EmptyOperator(task_id="end")

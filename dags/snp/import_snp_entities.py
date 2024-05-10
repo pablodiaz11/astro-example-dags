@@ -135,7 +135,7 @@ try:
     #:::::::::::::: Start Process ::::::::::
     #---------------------------------------
 
-    start_date = '2022-07-26'
+    start_date = '2024-05-06'
     end_date = datetime.now(tz=pytz.timezone('US/Eastern')).strftime('%Y-%m-%d') #'2023-02-17'
     process_name = 'S&P API'
     status = 'Pending'
