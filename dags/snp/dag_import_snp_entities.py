@@ -31,15 +31,25 @@ with DAG(
     # Star process
     begin = EmptyOperator(task_id="begin")
 
-    def hello():
+    first_name = 'Pablo'
+    last_name = 'Diaz'
+
+    op_kwargs = {
+        'vFirstName': first_name,
+        'vLastName': last_name
+    }
+
+    def hello(vFirstName, vLastName):
         say = 'Hello'
-        name = 'Pablo'
-        message = f"{say} {name}!"
+        first_name = vFirstName
+        last_name = vLastName
+        message = f"{say} {first_name} {last_name}!"
         print(message)
 
     import_snp_entities = PythonOperator(
         task_id = "import_snp_entities",
         python_callable = hello,
+        op_kwargs = op_kwargs,
     )
 
     end = EmptyOperator(task_id="end")
