@@ -33,7 +33,7 @@ with DAG(
 
     import_snp_entities = BashOperator(
         task_id = "import_snp_entities",
-        bash_command = "ls -la",
+        bash_command = "ls -l ./astro",
     )
 
     end = EmptyOperator(task_id="end")
