@@ -8,6 +8,7 @@ from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
 from airflow.models import Variable
 import pendulum
+import snp_utils as u
 
 local_tz = pendulum.timezone("America/New_York")
 dag_id = "dag_import_snp_entities"
