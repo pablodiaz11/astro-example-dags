@@ -33,18 +33,26 @@ with DAG(
     # Star process
     begin = EmptyOperator(task_id="begin")
 
+    # SnP API
     var_snp_username = Variable.get('var_snp_username', default_var = None)
-    var_snp_url = Variable.get('var_snp_username', default_var = None)
+    var_snp_password = Variable.get('var_snp_password', default_var = None)
+    var_snp_url = Variable.get('var_snp_url', default_var = None)
+    # Factset API
+    var_fs_username = Variable.get('var_fs_username', default_var = None)
+    var_fs_apikey = Variable.get('var_fs_apikey', default_var = None)
+    var_fs_url = Variable.get('var_fs_url', default_var = None)
 
     op_kwargs = {
         'p_snp_username': var_snp_username,
+        'p_snp_password': var_snp_password,
         'p_snp_url': var_snp_url
     }
 
-    def snp_import_entities(p_snp_username, p_snp_url):
+    def snp_import_entities(p_snp_username, p_snp_password, p_snp_url):
         snp_username = p_snp_username
+        snp_password = p_snp_password
         snp_url = p_snp_url
-        message = f"value from variable: {snp_username} {snp_url}!"
+        message = f"value from variable: {snp_username} | {snp_password} | {snp_url}!"
         print(message)
 
     import_snp_entities = PythonOperator(
