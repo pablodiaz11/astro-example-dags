@@ -53,17 +53,12 @@ with DAG(
 
     incremental_sp_run = SnowflakeOperator(
         task_id = "incremental_sp_run",
-        sql = SQL_CALL_SP,
-        autocommit = True,
-        parameters = params,
+        sql = "call stage.usp_poc2('Hi')",
     )
 
     incremental_load_target = SnowflakeOperator(
         task_id = "incremental_load_target",
-        sql = SQL_CALL_SP,
-        autocommit = True,
-        # parameters = params,
-        parameters = [params['feed_date'], params['process_name'],params['status']],
+        sql = "call stage.usp_poc4(4,0)",
     )
 
     end = EmptyOperator(task_id="end")
