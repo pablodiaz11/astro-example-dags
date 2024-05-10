@@ -33,7 +33,7 @@ with DAG(
 
     import_snp_entities = BashOperator(
         task_id = "import_snp_entities",
-        bash_command = "python ./hello.py",
+        bash_command = "python hello.py",
     )
 
     end = EmptyOperator(task_id="end")
