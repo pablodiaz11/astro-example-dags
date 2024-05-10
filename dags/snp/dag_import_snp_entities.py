@@ -6,22 +6,24 @@ from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator, S
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
+from airflow.models import Variable
 import pendulum
 
 local_tz = pendulum.timezone("America/New_York")
-DAG_ID = "dag_import_snp_entities"
-SNOWFLAKE_CONN_ID = "snow_devtest"
+dag_id = "dag_import_snp_entities"
+cnx_snow_dsa_stage = "cnx_snow_dsa_stage"
+cnx_snow_dsa_bloomberg = "cnx_snow_dsa_bloomberg"
 
 default_args={
     'email': ['pablo.diaz@moelis.com'],
     'email_on_failure': True,
-    "snowflake_conn_id": SNOWFLAKE_CONN_ID,
+    "snowflake_conn_id": cnx_snow_dsa_stage,
     "retries": 1,
     'retry_delay': timedelta(seconds=10),
 }
 
 with DAG(
-    DAG_ID,
+    dag_id,
     start_date = datetime(2024, 1, 1, tzinfo=local_tz),
     default_args = default_args,
     tags = ["SnP"],
@@ -31,24 +33,23 @@ with DAG(
     # Star process
     begin = EmptyOperator(task_id="begin")
 
-    first_name = 'Pablo'
-    last_name = 'Diaz'
+    var_snp_username = Variable.get('var_snp_username', default_var = None)
+    var_snp_url = Variable.get('var_snp_username', default_var = None)
 
     op_kwargs = {
-        'vFirstName': first_name,
-        'vLastName': last_name
+        'p_snp_username': var_snp_username,
+        'p_snp_url': var_snp_url
     }
 
-    def hello(vFirstName, vLastName):
-        say = 'Hello'
-        first_name = vFirstName
-        last_name = vLastName
-        message = f"{say} {first_name} {last_name}!"
+    def snp_import_entities(p_snp_username, p_snp_url):
+        snp_username = p_snp_username
+        snp_url = p_snp_url
+        message = f"value from variable: {snp_username} {snp_url}!"
         print(message)
 
     import_snp_entities = PythonOperator(
         task_id = "import_snp_entities",
-        python_callable = hello,
+        python_callable = snp_import_entities,
         op_kwargs = op_kwargs,
     )
 
