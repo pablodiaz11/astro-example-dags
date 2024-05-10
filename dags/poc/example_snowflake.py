@@ -1,12 +1,6 @@
-"""
-Example use of Snowflake related operators.
-"""
-
 from __future__ import annotations
-
 import os
 from datetime import datetime
-
 from airflow import DAG
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator, SnowflakeSqlApiOperator
 from airflow.operators.empty import EmptyOperator
