@@ -31,9 +31,15 @@ with DAG(
     # Star process
     begin = EmptyOperator(task_id="begin")
 
-    import_snp_entities = BashOperator(
+    def hello():
+        say = 'Hello'
+        name = 'Pablo'
+        message = f"{say} {name}!"
+        print(message)
+
+    import_snp_entities = PythonOperator(
         task_id = "import_snp_entities",
-        bash_command = "python hello.py",
+        python_callable = hello,
     )
 
     end = EmptyOperator(task_id="end")
