@@ -107,7 +107,7 @@ with DAG(
             sp_query = f"call STAGE.SP_PROCESS_RUN_START('{start_date}','{end_date}','{process_name}','{status}');"
             business_day = call_procedure_list(sp_query,conn_stg)
 
-            print(f'==> Process ended successful') 
+            print(f'==> Process ended successful') # remove this it just for testing
 
         except Exception as e:
             print('\n')
