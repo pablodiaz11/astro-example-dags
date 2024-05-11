@@ -8,6 +8,7 @@ from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
 from airflow.models import Variable
 import pendulum
+import pytz
 
 local_tz = pendulum.timezone("America/New_York")
 dag_id = "dag_import_snp_entities"
@@ -80,7 +81,7 @@ with DAG(
             print("Exception Name: {}".format(type(e).__name__))
             print("Exception Description: {}".format(e))
 
-            sp_query_end = f"call STAGE.SP_PROCESS_RUN_END('{bdate}','{process_name}','Failed');"
+            sp_query_end = f"call STAGE.SP_PROCESS_RUN_END('{start_date}','{process_name}','Failed');" # change start_date by bdate
             r = call_procedure_list(sp_query_end,conn_stg)
             print(f'==> Process ended: {r[0][0]}') 
             print('')

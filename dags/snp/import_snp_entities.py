@@ -8,7 +8,6 @@ from snowflake.connector.pandas_tools import write_pandas
 from config import *
 from datetime import datetime, timezone, date
 import pytz
-import snp_utils as u
 
 #=======================================================
 #::::::::::::: Define credentials and services :::::::::
