@@ -6,6 +6,7 @@ from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator, S
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
+from airflow.providers.snowflake.hooks.snowflake import SnowflakeHook
 from airflow.models import Variable
 import pendulum
 import pytz
@@ -42,7 +43,7 @@ with DAG(
     var_fs_username = Variable.get('var_fs_username', default_var = None)
     var_fs_apikey = Variable.get('var_fs_apikey', default_var = None)
     var_fs_url = Variable.get('var_fs_url', default_var = None)
-    # Snowflake
+    # Snowflake: Using Variable defined in Airflow
     var_snow_user = Variable.get('var_snow_user', default_var = None)
     var_snow_password = Variable.get('var_snow_password', default_var = None)
     var_snow_account = Variable.get('var_snow_account', default_var = None)
@@ -51,7 +52,7 @@ with DAG(
     var_snow_database = Variable.get('var_snow_database', default_var = None)
     var_snow_schema_stg = Variable.get('var_snow_schema_stg', default_var = None)
     var_snow_schema_gold = Variable.get('var_snow_schema_gold', default_var = None)
-
+    # Get conexion
     conn_stg = snowflake.connector.connect(  
         user = var_snow_user,
         password = var_snow_password,
@@ -71,6 +72,9 @@ with DAG(
         database = var_snow_database,
         schema = var_snow_schema_gold
     )
+
+    # Using Atro Environment Conexion
+
 
     op_kwargs = {
         'p_snp_username': var_snp_username,
