@@ -522,7 +522,10 @@ with DAG(
             r = call_procedure_list(sp_query_end,conn_stg)
             print(f'==> Process ended: {r[0][0]}') 
             print('')
+            raise e
+            print('')
         finally:
+            print(f'==> Closing Snowflake connection.') 
             snow_dsa_conn.close()
 
     # Start process
