@@ -35,18 +35,30 @@ with DAG(
     schedule = None,
     catchup = False,
 ) as dag:
+
+    #=======================================================
+    #::::::::::::: Define credentials and services :::::::::
+    #=======================================================
     
-    # SnP API
+    #:::: SnP API ::::#
     var_snp_username = Variable.get('var_snp_username', default_var = None)
     var_snp_password = Variable.get('var_snp_password', default_var = None)
-    var_snp_url = Variable.get('var_snp_url', default_var = None)
+    var_snp_url = Variable.get('var_snp_url', default_var = None) # base url
+
+    url_apikey = f'{var_snp_url}apikey'
+    r = requests.post(url_apikey,data={'username': var_snp_username,'password': var_snp_password}, verify = True)
+
+    if (r.status_code == 200):
+        apikey = r.text
+    else:
+        sys.exit();
     
-    # Factset API
-    var_fs_username = Variable.get('var_fs_username', default_var = None)
-    var_fs_apikey = Variable.get('var_fs_apikey', default_var = None)
-    var_fs_url = Variable.get('var_fs_url', default_var = None)
+    #:::: Factset API ::::#
+    authorization = (var_fs_username,var_fs_apikey)
+    time_series_endpoint = var_fs_url
+    headers = {'Accept': 'application/json','Content-Type': 'application/json'}
     
-    # # Snowflake: Using Variable defined in Airflow
+    #:::: Snowflake: Using Variable defined in Airflow ::::#
     # var_snow_user = Variable.get('var_snow_user', default_var = None)
     # var_snow_password = Variable.get('var_snow_password', default_var = None)
     # var_snow_account = Variable.get('var_snow_account', default_var = None)
@@ -76,21 +88,64 @@ with DAG(
     #     schema = var_snow_schema_gold
     # )
 
-    # Using Atro Environment Conexion
+    #:::: Using SnowflakeHook ::::#
     hook = SnowflakeHook(snowflake_conn_id = cnx_snow_dsa_stage)
     snow_dsa_conn = hook.get_conn()
 
     # Other way
     # snow_dsa_conn = BaseHook.get_connection(cnx_snow_dsa_stage)
 
-    op_kwargs = {
-        'p_snp_username': var_snp_username,
-        'p_snp_password': var_snp_password,
-        'p_snp_url': var_snp_url,
-        'p_conn_stg': snow_dsa_conn, #conn_stg,
-        'p_conn_gold': snow_dsa_conn #conn_gold
-    }
+    #=======================================================
+    #:::::::::::::::::::: Define functions :::::::::::::::::
+    #=======================================================
 
+    # ::::: Function to verify if Key 'id' exists in a Dictionary ::::::
+    def get_value(x):
+        if type(x) == dict:
+            if 'id' in x:
+                return x['id']
+            else:
+                None
+        else:
+            None
+            
+    # ::::: Dump DF into Snowflake table
+    def write_df_to_table(df, conn,table_name,database,schema):
+        if df.empty == False:
+            df.columns = df.columns.str.upper()
+
+            write_pandas(
+                        conn=conn,
+                        df=df,
+                        table_name=table_name,
+                        database=database,
+                        schema=schema
+                    )
+            print(f" {table_name} - Rows inserted: {df.shape[0]}")
+        
+    # :::: Truncate table :::::::
+    def truncate_table(table_name, conn):
+        query = f'truncate table {table_name}'
+        cur = conn.cursor()
+        cur.execute(query)
+        cur.close()
+        
+    # :::::: Fix date format :::::::
+    def fix_date_col(df,tz='UTC'):
+        cols = df.select_dtypes(include=['datetime64[ns]']).columns
+        for col in cols:
+            df[col] = df[col].dt.tz_localize(tz)
+        return df
+
+    # ::::::: call procedure ::::::::
+    def call_procedure(procedure_name, conn):
+        query = f'call {procedure_name}();'
+        cur = conn.cursor()
+        cur.execute(query)
+        result = cur.fetchall()
+        cur.close()
+        print(f' {result[0][0]}')
+        
     def call_procedure_list(procedure_query, conn):
         query = f'{procedure_query};'
         cur = conn.cursor()
@@ -119,7 +174,7 @@ with DAG(
             sp_query = f"call STAGE.SP_PROCESS_RUN_START('{start_date}','{end_date}','{process_name}','{status}');"
             business_day = call_procedure_list(sp_query,conn_stg)
 
-            print(f'==> Process ended successful') # remove this it just for testing
+            print(f'==> Process ended successful: {apikey}') # remove this, it just for testing
 
         except Exception as e:
             print('\n')
@@ -137,6 +192,14 @@ with DAG(
     begin = EmptyOperator(task_id="begin")
 
     # Import entities
+    op_kwargs = {
+        'p_snp_username': var_snp_username,
+        'p_snp_password': var_snp_password,
+        'p_snp_url': var_snp_url,
+        'p_conn_stg': snow_dsa_conn, #conn_stg,
+        'p_conn_gold': snow_dsa_conn #conn_gold
+    }
+
     import_entities = PythonOperator(
         task_id = "import_entities",
         python_callable = snp_import_entities,
