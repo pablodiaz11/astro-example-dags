@@ -240,8 +240,13 @@ with DAG(
                     price_path = namespace + '/'+ price_entity + '/' + service
                     price_query = f'?format=JSON&apikey={apikey}&from={price_as_of_from}&to={price_as_of_to}&envelope={price_envelope}&after={price_after}&limit={price_limit}'
                     price_req = var_snp_url + price_path + price_query
+
+                    print(price_req)
+
                     price_data = requests.get(price_req, verify = True)
                     price_json = price_data.json()
+
+                    print(price_json)
 
                     if price_data.status_code > 499:
                         print("Server-side error; handle by retrying")
