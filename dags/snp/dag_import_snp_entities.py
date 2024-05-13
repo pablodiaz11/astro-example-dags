@@ -239,7 +239,7 @@ with DAG(
                 while price_has_data:
                     price_path = namespace + '/'+ price_entity + '/' + service
                     price_query = f'?format=JSON&apikey={apikey}&from={price_as_of_from}&to={price_as_of_to}&envelope={price_envelope}&after={price_after}&limit={price_limit}'
-                    price_req = url + price_path + price_query
+                    price_req = var_snp_url + price_path + price_query
                     price_data = requests.get(price_req, verify = True)
                     price_json = price_data.json()
 
@@ -312,7 +312,7 @@ with DAG(
                             lxids = ','.join(lxid_new)
                             facility_path = namespace + '/'+ facility_entity + '/latest'
                             facility_query = f'?format=JSON&apikey={apikey}&lxid={lxids}'
-                            facility_req = url + facility_path + facility_query
+                            facility_req = var_snp_url + facility_path + facility_query
                             facility_data = requests.get(facility_req, verify = True)
 
                             if facility_data.status_code == 200 and len(lxid_new) > 0:
@@ -360,7 +360,7 @@ with DAG(
                                 orgids = ','.join(orgid_new)
                                 organization_path = namespace + '/'+ organization_entity + '/latest'
                                 organization_query = f'?format=JSON&apikey={apikey}&id={orgids}'
-                                organization_req = url + organization_path + organization_query
+                                organization_req = var_snp_url + organization_path + organization_query
                                 organization_data = requests.get(organization_req, verify = True)
 
                                 if organization_data.status_code == 200:
@@ -427,7 +427,7 @@ with DAG(
             
             batch_path = namespace + '/'+ batch_entity + '/' + service
             batch_query = f'?format=JSON&apikey={apikey}'
-            batch_req = url + batch_path + batch_query
+            batch_req = var_snp_url + batch_path + batch_query
             batch_data = requests.get(batch_req, verify = True)
 
             if batch_data.status_code == 200:
@@ -458,7 +458,7 @@ with DAG(
             
             batchrun_path = namespace + '/'+ batchrun_entity + '/' + service
             batchrun_query = f'?format=JSON&apikey={apikey}'
-            batchrun_req = url + batchrun_path + batchrun_query
+            batchrun_req = var_snp_url + batchrun_path + batchrun_query
             batchrun_data = requests.get(batchrun_req, verify = True)
 
             if batchrun_data.status_code == 200:
@@ -491,7 +491,7 @@ with DAG(
             
             agent_path = namespace + '/'+ agent_entity + '/' + service
             agent_query = f'?format=JSON&apikey={apikey}'
-            agent_req = url + agent_path + agent_query
+            agent_req = var_snp_url + agent_path + agent_query
             agent_data = requests.get(agent_req, verify = True)
 
             if agent_data.status_code == 200:
