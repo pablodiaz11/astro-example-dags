@@ -76,7 +76,7 @@ with DAG(
     # )
 
     # Using Atro Environment Conexion
-    hook = SnowflakeHook(snowflake_conn_id = 'snow_devtest')
+    hook = SnowflakeHook(snowflake_conn_id = 'snow_conn_test')
     snow_dsa_conn = hook.get_conn()
 
     op_kwargs = {
