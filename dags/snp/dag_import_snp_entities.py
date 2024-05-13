@@ -76,7 +76,7 @@ with DAG(
     # )
 
     # Using Atro Environment Conexion
-    hook = SnowflakeHook(snowflake_conn_id = 'snow_conn_test')
+    hook = SnowflakeHook()
     snow_dsa_conn = hook.get_conn()
 
     op_kwargs = {
@@ -133,8 +133,8 @@ with DAG(
     begin = EmptyOperator(task_id="begin")
 
     # Import entities
-    import_snp_entities = PythonOperator(
-        task_id = "import_snp_entities",
+    import_entities = PythonOperator(
+        task_id = "import_entities",
         python_callable = snp_import_entities,
         op_kwargs = op_kwargs,
     )
@@ -142,5 +142,5 @@ with DAG(
     # End process
     end = EmptyOperator(task_id="end")
 
-begin >> import_snp_entities >> end
+begin >> import_entities >> end
 
