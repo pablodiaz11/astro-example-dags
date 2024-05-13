@@ -7,6 +7,7 @@ from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
 from airflow.providers.snowflake.hooks.snowflake import SnowflakeHook
+from airflow.hooks.base_hook import BaseHook
 from airflow.models import Variable
 import pendulum
 import pytz
@@ -76,8 +77,11 @@ with DAG(
     # )
 
     # Using Atro Environment Conexion
-    hook = SnowflakeHook()
-    snow_dsa_conn = hook.get_conn()
+    # hook = SnowflakeHook(snowflake_conn_id = cnx_snow_dsa_stage)
+    # snow_dsa_conn = hook.get_conn()
+
+    # Other way
+    snow_dsa_conn = BaseHook.get_connection(cnx_snow_dsa_stage)
 
     op_kwargs = {
         'p_snp_username': var_snp_username,
