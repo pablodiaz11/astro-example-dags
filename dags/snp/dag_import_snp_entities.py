@@ -39,49 +39,52 @@ with DAG(
     var_snp_username = Variable.get('var_snp_username', default_var = None)
     var_snp_password = Variable.get('var_snp_password', default_var = None)
     var_snp_url = Variable.get('var_snp_url', default_var = None)
+    
     # Factset API
     var_fs_username = Variable.get('var_fs_username', default_var = None)
     var_fs_apikey = Variable.get('var_fs_apikey', default_var = None)
     var_fs_url = Variable.get('var_fs_url', default_var = None)
-    # Snowflake: Using Variable defined in Airflow
-    var_snow_user = Variable.get('var_snow_user', default_var = None)
-    var_snow_password = Variable.get('var_snow_password', default_var = None)
-    var_snow_account = Variable.get('var_snow_account', default_var = None)
-    var_snow_role = Variable.get('var_snow_role', default_var = None)
-    var_snow_warehouse = Variable.get('var_snow_warehouse', default_var = None)
-    var_snow_database = Variable.get('var_snow_database', default_var = None)
-    var_snow_schema_stg = Variable.get('var_snow_schema_stg', default_var = None)
-    var_snow_schema_gold = Variable.get('var_snow_schema_gold', default_var = None)
-    # Get conexion
-    conn_stg = snowflake.connector.connect(  
-        user = var_snow_user,
-        password = var_snow_password,
-        account = var_snow_account,
-        role = var_snow_role,
-        warehouse = var_snow_warehouse,
-        database = var_snow_database,
-        schema = var_snow_schema_stg
-    )
+    
+    # # Snowflake: Using Variable defined in Airflow
+    # var_snow_user = Variable.get('var_snow_user', default_var = None)
+    # var_snow_password = Variable.get('var_snow_password', default_var = None)
+    # var_snow_account = Variable.get('var_snow_account', default_var = None)
+    # var_snow_role = Variable.get('var_snow_role', default_var = None)
+    # var_snow_warehouse = Variable.get('var_snow_warehouse', default_var = None)
+    # var_snow_database = Variable.get('var_snow_database', default_var = None)
+    # var_snow_schema_stg = Variable.get('var_snow_schema_stg', default_var = None)
+    # var_snow_schema_gold = Variable.get('var_snow_schema_gold', default_var = None)
+    # # Get conexion
+    # conn_stg = snowflake.connector.connect(  
+    #     user = var_snow_user,
+    #     password = var_snow_password,
+    #     account = var_snow_account,
+    #     role = var_snow_role,
+    #     warehouse = var_snow_warehouse,
+    #     database = var_snow_database,
+    #     schema = var_snow_schema_stg
+    # )
 
-    conn_gold = snowflake.connector.connect(  
-        user = var_snow_user,
-        password = var_snow_password,
-        account = var_snow_account,
-        role = var_snow_role,
-        warehouse = var_snow_warehouse,
-        database = var_snow_database,
-        schema = var_snow_schema_gold
-    )
+    # conn_gold = snowflake.connector.connect(  
+    #     user = var_snow_user,
+    #     password = var_snow_password,
+    #     account = var_snow_account,
+    #     role = var_snow_role,
+    #     warehouse = var_snow_warehouse,
+    #     database = var_snow_database,
+    #     schema = var_snow_schema_gold
+    # )
 
     # Using Atro Environment Conexion
-
+    hook = SnowflakeHook(snowflake_conn_id = 'cnx_snow_dsa_stage')
+    snow_dsa_conn = hook.get_conn()
 
     op_kwargs = {
         'p_snp_username': var_snp_username,
         'p_snp_password': var_snp_password,
         'p_snp_url': var_snp_url,
-        'p_conn_stg': conn_stg,
-        'p_conn_gold': conn_gold
+        'p_conn_stg': snow_dsa_conn, #conn_stg,
+        'p_conn_gold': snow_dsa_conn #conn_gold
     }
 
     def call_procedure_list(procedure_query, conn):
@@ -89,6 +92,7 @@ with DAG(
         cur = conn.cursor()
         cur.execute(query)
         result = cur.fetchall()
+        cur.close()
         return result
 
     def snp_import_entities(p_snp_username, p_snp_password, p_snp_url, p_conn_stg, p_conn_gold):
@@ -122,6 +126,8 @@ with DAG(
             r = call_procedure_list(sp_query_end,conn_stg)
             print(f'==> Process ended: {r[0][0]}') 
             print('')
+        finally:
+            snow_dsa_conn.close()
 
     # Start process
     begin = EmptyOperator(task_id="begin")
