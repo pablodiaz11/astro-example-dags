@@ -59,6 +59,10 @@ with DAG(
         sys.exit();
     
     #:::: Factset API ::::#
+    var_fs_username = Variable.get('var_fs_username', default_var = None)
+    var_fs_apikey = Variable.get('var_fs_apikey', default_var = None)
+    var_fs_url = Variable.get('var_fs_url', default_var = None)
+
     authorization = (var_fs_username,var_fs_apikey)
     time_series_endpoint = var_fs_url
     headers = {'Accept': 'application/json','Content-Type': 'application/json'}
