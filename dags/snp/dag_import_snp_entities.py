@@ -16,7 +16,7 @@ from snowflake.connector.pandas_tools import write_pandas
 
 local_tz = pendulum.timezone("America/New_York")
 dag_id = "dag_import_snp_entities"
-cnx_snow_dsa_stage = "cnx_snow_dsa_stage"
+cnx_snow_dsa_stage = 'snow_conn_test' #"cnx_snow_dsa_stage"
 cnx_snow_dsa_bloomberg = "cnx_snow_dsa_bloomberg"
 
 default_args={
@@ -77,11 +77,11 @@ with DAG(
     # )
 
     # Using Atro Environment Conexion
-    # hook = SnowflakeHook(snowflake_conn_id = cnx_snow_dsa_stage)
-    # snow_dsa_conn = hook.get_conn()
+    hook = SnowflakeHook(snowflake_conn_id = cnx_snow_dsa_stage)
+    snow_dsa_conn = hook.get_conn()
 
     # Other way
-    snow_dsa_conn = BaseHook.get_connection(cnx_snow_dsa_stage)
+    # snow_dsa_conn = BaseHook.get_connection(cnx_snow_dsa_stage)
 
     op_kwargs = {
         'p_snp_username': var_snp_username,
