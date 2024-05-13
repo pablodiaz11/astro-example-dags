@@ -241,12 +241,8 @@ with DAG(
                     price_query = f'?format=JSON&apikey={apikey}&from={price_as_of_from}&to={price_as_of_to}&envelope={price_envelope}&after={price_after}&limit={price_limit}'
                     price_req = var_snp_url + price_path + price_query
 
-                    print(price_req)
-
                     price_data = requests.get(price_req, verify = True)
                     price_json = price_data.json()
-
-                    print(price_json)
 
                     if price_data.status_code > 499:
                         print("Server-side error; handle by retrying")
@@ -286,6 +282,8 @@ with DAG(
                             price_df.rename(columns={'facility':'facilityId', 'batchRun':'batchRunId','batch':'batchId','analytics':'spreadToMaturity'}, inplace=True)
                             price_df['asOf'] = pd.to_datetime(price_df['asOf'].apply(lambda x : x.replace('Z','') if x is not np.NaN or x == '' else x))
                             price_df['asOfDateTime'] = pd.to_datetime(price_df['asOfDateTime'].apply(lambda x : x.replace('Z','').replace('T',' ') if x is not np.NaN or x == '' else x))
+
+                            price_df.head()
 
                             #============================================================================
                             #::::::::::::::::::::::: GET FACTSET FORMULA DATA :::::::::::::::::::::::::::
