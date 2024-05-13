@@ -101,6 +101,10 @@ with DAG(
     hook = SnowflakeHook(snowflake_conn_id = cnx_snow_dsa_stage)
     snow_dsa_conn = hook.get_conn()
 
+    snow_database = 'DSA'
+    snow_schema_stg = 'STAGE'
+    snow_schema_main = 'BLOOMBERG'
+
     # Other way
     # snow_dsa_conn = BaseHook.get_connection(cnx_snow_dsa_stage)
 
@@ -128,7 +132,8 @@ with DAG(
                         df=df,
                         table_name=table_name,
                         database=database,
-                        schema=schema
+                        schema=schema,
+                        use_logical_type= True
                     )
             print(f" {table_name} - Rows inserted: {df.shape[0]}")
         
@@ -163,12 +168,11 @@ with DAG(
         cur.close()
         return result
 
-    def snp_import_entities(p_snp_username, p_snp_password, p_snp_url, p_conn_stg, p_conn_gold):
+    def snp_import_entities(p_snp_username, p_snp_password, p_snp_url, p_snow_cnx_dsa):
         snp_username = p_snp_username
         snp_password = p_snp_password
         snp_url = p_snp_url
-        conn_stg = p_conn_stg
-        conn_gold = p_conn_gold
+        snow_cnx_dsa = p_snow_cnx_dsa
 
         try:
             #---------------------------------------
@@ -180,8 +184,8 @@ with DAG(
             process_name = 'S&P API'
             status = 'Pending'
 
-            sp_query = f"call STAGE.SP_PROCESS_RUN_START('{start_date}','{end_date}','{process_name}','{status}');"
-            business_day = call_procedure_list(sp_query,conn_stg)
+            sp_query = f"call {snow_schema_stg}.SP_PROCESS_RUN_START('{start_date}','{end_date}','{process_name}','{status}');"
+            business_day = call_procedure_list(sp_query,snow_cnx_dsa)
 
             #-------------------------------------------
             #:::::::::::: Start data extraction ::::::::
@@ -225,9 +229,9 @@ with DAG(
                 print(f'==> Process started: {bdate}')
                 print(f' [Bronze]')
 
-                truncate_table(price_table,conn_stg)
-                truncate_table(facility_table,conn_stg)
-                truncate_table(organization_table,conn_stg)
+                truncate_table(price_table,snow_cnx_dsa)
+                truncate_table(facility_table,snow_cnx_dsa)
+                truncate_table(organization_table,snow_cnx_dsa)
 
                 #============================================================================
                 #:::::::::::::::::::::::::: GET PRICE ENTITY ::::::::::::::::::::::::::::::::
@@ -263,6 +267,7 @@ with DAG(
                     if price_data.status_code == 200:
                         if 'after' in price_json.keys():
                             price_after = price_json['after']
+                                                       
                             price_df = pd.DataFrame(price_json['timeseries'])
                             lxid_list = price_df['lxid'].unique().tolist()
                             
@@ -283,27 +288,25 @@ with DAG(
                             price_df['asOf'] = pd.to_datetime(price_df['asOf'].apply(lambda x : x.replace('Z','') if x is not np.NaN or x == '' else x))
                             price_df['asOfDateTime'] = pd.to_datetime(price_df['asOfDateTime'].apply(lambda x : x.replace('Z','').replace('T',' ') if x is not np.NaN or x == '' else x))
 
-                            price_df.head()
-
                             #============================================================================
                             #::::::::::::::::::::::: GET FACTSET FORMULA DATA :::::::::::::::::::::::::::
                             #============================================================================
 
-                            # Get FSYM_SECURITY_PERM_ID for each LoandXID Value from Factset Formula API
-                            fs_request = {
-                                "data":{
-                                    "ids": lxid_list,
-                                    "formulas": ["FSYM_SECURITY_PERM_ID(\"SECURITY\")"]  }
-                                }
-                            fs_post = json.dumps(fs_request)
-                            fs_response = requests.post(url = time_series_endpoint, data = fs_post, auth = authorization, headers = headers, verify= True )
+                            # # Get FSYM_SECURITY_PERM_ID for each LoandXID Value from Factset Formula API
+                            # fs_request = {
+                            #     "data":{
+                            #         "ids": lxid_list,
+                            #         "formulas": ["FSYM_SECURITY_PERM_ID(\"SECURITY\")"]  }
+                            #     }
+                            # fs_post = json.dumps(fs_request)
+                            # fs_response = requests.post(url = time_series_endpoint, data = fs_post, auth = authorization, headers = headers, verify= True )
 
-                            # Get response as Dataframe format
-                            formula_data = fs_response.json()['data']
-                            formula_df = pd.DataFrame(formula_data)
+                            # # Get response as Dataframe format
+                            # formula_data = fs_response.json()['data']
+                            # formula_df = pd.DataFrame(formula_data)
 
-                            # Add FsymSecurityPermId column into entity_data_df
-                            price_df['fsymSecurityPermId'] = price_df.merge(formula_df,how='left',left_on='lxid', right_on='requestId')['result']
+                            # # Add FsymSecurityPermId column into entity_data_df
+                            # price_df['fsymSecurityPermId'] = price_df.merge(formula_df,how='left',left_on='lxid', right_on='requestId')['result']
 
                             #============================================================================
                             #:::::::::::::::::::::::::: GET FACILITY ENTITY :::::::::::::::::::::::::::::
@@ -349,7 +352,7 @@ with DAG(
 
                                 # Dump facility entity into Snowflake table
                                 facility_df = fix_date_col(facility_df)
-                                write_df_to_table(facility_df,conn_stg,facility_table,snow_database,snow_schema_stg)
+                                write_df_to_table(facility_df,snow_cnx_dsa,facility_table,snow_database,snow_schema_stg)
 
                             #============================================================================
                             #::::::::::::::::::::::: GET ORGANIZATION ENTITY ::::::::::::::::::::::::::::
@@ -379,18 +382,18 @@ with DAG(
 
                                     # Dump organization entity into Snowflake table
                                     organization_df = fix_date_col(organization_df)
-                                    write_df_to_table(organization_df,conn_stg,organization_table,snow_database,snow_schema_stg)
+                                    write_df_to_table(organization_df,snow_cnx_dsa,organization_table,snow_database,snow_schema_stg)
 
                             # Dump price entity into Snowflake table
                             price_df = fix_date_col(price_df)
-                            write_df_to_table(price_df,conn_stg,price_table,snow_database,snow_schema_stg)
+                            write_df_to_table(price_df,snow_cnx_dsa,price_table,snow_database,snow_schema_stg)
 
                         else:
                             price_has_data = False
                     else:
                         price_has_data = False
-                        sp_query_end = f"call STAGE.SP_PROCESS_RUN_END('{bdate}','{process_name}','Failed');"
-                        r = call_procedure_list(sp_query_end,conn_stg)
+                        sp_query_end = f"call {snow_schema_stg}.SP_PROCESS_RUN_END('{bdate}','{process_name}','Failed');"
+                        r = call_procedure_list(sp_query_end,snow_cnx_dsa)
                         print(f'==> Process ended: {r[0][0]}') 
                         print('')
                         sys.exit()
@@ -401,18 +404,18 @@ with DAG(
 
                 print(f' [Gold]')
                 if len(lxid_all) > 0:
-                    call_procedure('sp_snp_upsert_price',conn_gold)
-                    call_procedure('sp_snp_upsert_organization',conn_gold)
-                    call_procedure('sp_snp_upsert_facility',conn_gold)
+                    call_procedure(f'{snow_schema_main}.sp_snp_upsert_price',snow_cnx_dsa)
+                    call_procedure(f'{snow_schema_main}.sp_snp_upsert_organization',snow_cnx_dsa)
+                    call_procedure(f'{snow_schema_main}.sp_snp_upsert_facility',snow_cnx_dsa)
                     
-                    sp_query_end = f"call STAGE.SP_PROCESS_RUN_END('{bdate}','{process_name}','Success');"
-                    r = call_procedure_list(sp_query_end,conn_stg)
+                    sp_query_end = f"call {snow_schema_stg}.SP_PROCESS_RUN_END('{bdate}','{process_name}','Success');"
+                    r = call_procedure_list(sp_query_end,snow_cnx_dsa)
                     print(f'==> Process ended: {r[0][0]}') 
                     print()
                 else:
                     print(f' There no data yet for {bdate}, try later.')
-                    sp_query_end = f"call STAGE.SP_PROCESS_RUN_END('{bdate}','{process_name}','Pending');"
-                    r = call_procedure_list(sp_query_end,conn_stg)
+                    sp_query_end = f"call {snow_schema_stg}.SP_PROCESS_RUN_END('{bdate}','{process_name}','Pending');"
+                    r = call_procedure_list(sp_query_end,snow_cnx_dsa)
                     print(f'==> Process ended: {r[0][0]}')
                     print()
                 
@@ -449,9 +452,9 @@ with DAG(
 
                 # Dump Batch entity into Snowflake table
                 batch_df = fix_date_col(batch_df)
-                truncate_table(batch_table,conn_stg)
-                write_df_to_table(batch_df,conn_stg,batch_table,snow_database,snow_schema_stg)
-                call_procedure('sp_snp_upsert_batch',conn_gold)
+                truncate_table(batch_table,snow_cnx_dsa)
+                write_df_to_table(batch_df,snow_cnx_dsa,batch_table,snow_database,snow_schema_stg)
+                call_procedure(f'{snow_schema_main}.sp_snp_upsert_batch',snow_cnx_dsa)
 
             #:::::::: Pull Batchrun entity ::::::::::
             
@@ -482,9 +485,9 @@ with DAG(
 
                 # Dump Batchrun entity into Snowflake table
                 batchrun_df = fix_date_col(batchrun_df)
-                truncate_table(batchrun_table,conn_stg)
-                write_df_to_table(batchrun_df,conn_stg,batchrun_table,snow_database,snow_schema_stg)
-                call_procedure('sp_snp_upsert_batchrun',conn_gold)
+                truncate_table(batchrun_table,snow_cnx_dsa)
+                write_df_to_table(batchrun_df,snow_cnx_dsa,batchrun_table,snow_database,snow_schema_stg)
+                call_procedure(f'{snow_schema_main}.sp_snp_upsert_batchrun',snow_cnx_dsa)
 
             #::::::::::: Pull Agent entity :::::::::::::
             
@@ -510,9 +513,9 @@ with DAG(
 
                 # Dump Agent entity into Snowflake table
                 agent_df = fix_date_col(agent_df)
-                truncate_table(agent_table,conn_stg)
-                write_df_to_table(agent_df,conn_stg,agent_table,snow_database,snow_schema_stg)
-                call_procedure('sp_snp_upsert_agent',conn_gold)
+                truncate_table(agent_table,snow_cnx_dsa)
+                write_df_to_table(agent_df,snow_cnx_dsa,agent_table,snow_database,snow_schema_stg)
+                call_procedure(f'{snow_schema_main}.sp_snp_upsert_agent',snow_cnx_dsa)
             
             print('')
 
@@ -521,8 +524,8 @@ with DAG(
             print("Exception Name: {}".format(type(e).__name__))
             print("Exception Description: {}".format(e))
 
-            sp_query_end = f"call STAGE.SP_PROCESS_RUN_END('{bdate}','{process_name}','Failed');"
-            r = call_procedure_list(sp_query_end,conn_stg)
+            sp_query_end = f"call {snow_schema_stg}.SP_PROCESS_RUN_END('{bdate}','{process_name}','Failed');"
+            r = call_procedure_list(sp_query_end,snow_cnx_dsa)
             print(f'==> Process ended: {r[0][0]}') 
             print('')
             raise e
@@ -539,8 +542,7 @@ with DAG(
         'p_snp_username': var_snp_username,
         'p_snp_password': var_snp_password,
         'p_snp_url': var_snp_url,
-        'p_conn_stg': snow_dsa_conn, #conn_stg,
-        'p_conn_gold': snow_dsa_conn #conn_gold
+        'p_snow_cnx_dsa': snow_dsa_conn
     }
 
     import_entities = PythonOperator(
