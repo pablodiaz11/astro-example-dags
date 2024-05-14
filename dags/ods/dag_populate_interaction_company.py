@@ -33,7 +33,7 @@ with DAG(
     begin = EmptyOperator(task_id="begin")
 
     params = {
-        'run_date':datetime.datetime.now()
+        'run_date': datetime.now()
     }
 
     call_sp_sql = f"call {snowflake_sp}(%(run_date)s)"
