@@ -47,7 +47,7 @@ with DAG(
         task_id = "populate_interaction_company",
         sql = SQL_CALL_SP,
         autocommit = True,
-        parameters = params,
+        #parameters = params,
         #parameters = [params['feed_date'], params['process_name'],params['status']],
     )
 
