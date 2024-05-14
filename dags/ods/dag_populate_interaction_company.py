@@ -9,9 +9,9 @@ from airflow.operators.bash import BashOperator
 import pendulum
 
 local_tz = pendulum.timezone("America/New_York")
-dag_id = "dag_call_snowflake_sp"
+DAG_ID = "dag_populate_interaction_company"
 SNOWFLAKE_CONN_ID = "snow_devtest"
-SNOWFLAKE_SP = "STAGE.SP_PROCESS_RUN_END"
+SNOWFLAKE_SP = "ODS.META_DATA.POPULATE_INTERACTION_COMPANY"
 
 default_args={
     'email': ['pablo.diaz@moelis.com'],
@@ -22,10 +22,10 @@ default_args={
 }
 
 with DAG(
-    dag_id,
+    DAG_ID,
     start_date = datetime(2024, 1, 1, tzinfo=local_tz),
     default_args = default_args,
-    tags = ["snowflake_sp"],
+    tags = ["ODS"],
     schedule = None,
     catchup = False,
 ) as dag:
@@ -33,19 +33,18 @@ with DAG(
     begin = EmptyOperator(task_id="begin")
 
     params = {
-        'feed_date':"2023-09-27",
-        'process_name':"S&P API",
-        'status':"Failed"
+        'RUN_DATE':"2024-05-13 20:00:00.000"
     }
 
-    sql_call_sp = f"call {SNOWFLAKE_SP}(?, ?, ?)"
-    #sql_call_sp = f"call {SNOWFLAKE_SP}(%(feed_date)s, %(process_name)s, %(status)s)"
+    SQL_CALL_SP = f"call {SNOWFLAKE_SP}('2024-05-13 20:00:00.000 +0000')"
+    #SQL_CALL_SP = f"call {SNOWFLAKE_SP}(?, ?, ?)"
+    #SQL_CALL_SP = f"call {SNOWFLAKE_SP}(%(feed_date)s, %(process_name)s, %(status)s)"
 
     populate_interaction_company = SnowflakeOperator(
         task_id = "populate_interaction_company",
-        sql = sql_call_sp,
+        sql = SQL_CALL_SP,
         autocommit = True,
-        parameters = params,
+        #parameters = params,
         #parameters = [params['feed_date'], params['process_name'],params['status']],
     )
 
