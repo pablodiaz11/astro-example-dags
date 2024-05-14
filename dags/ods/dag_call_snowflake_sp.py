@@ -11,8 +11,8 @@ import pendulum
 local_tz = pendulum.timezone("America/New_York")
 DAG_ID = "dag_call_snowflake_sp"
 SNOWFLAKE_CONN_ID = "snow_devtest"
-#SNOWFLAKE_SP = "ODS.META_DATA.POPULATE_INTERACTION_COMPANY"
-SNOWFLAKE_SP = "STAGE.SP_PROCESS_RUN_END"
+SNOWFLAKE_SP = "ODS.META_DATA.POPULATE_INTERACTION_COMPANY"
+#SNOWFLAKE_SP = "STAGE.SP_PROCESS_RUN_END"
 
 default_args={
     'email': ['pablo.diaz@moelis.com'],
@@ -39,9 +39,9 @@ with DAG(
         'status':"Failed"
     }
 
-    #SQL_CALL_SP = f"call {SNOWFLAKE_SP}('RUN_DATE' TIMESTAMP_TZ(9))"
+    SQL_CALL_SP = f"call {SNOWFLAKE_SP}('2024-05-13 20:00:00.000 +0000')"
     #SQL_CALL_SP = f"call {SNOWFLAKE_SP}(?, ?, ?)"
-    SQL_CALL_SP = f"call {SNOWFLAKE_SP}(%(feed_date)s, %(process_name)s, %(status)s)"
+    #SQL_CALL_SP = f"call {SNOWFLAKE_SP}(%(feed_date)s, %(process_name)s, %(status)s)"
 
     populate_interaction_company = SnowflakeOperator(
         task_id = "populate_interaction_company",
