@@ -11,7 +11,7 @@ import pendulum
 local_tz = pendulum.timezone("America/New_York")
 dag_id = "dag_populate_interaction_company"
 snowflake_conn_id = "snow_devtest"
-snowflake_sp = "ODS.META_DATA.POPULATE_INTERACTION_COMPANY"
+snowflake_sp = "ODS.META_DATA.POPULATE_INTERACTION_COMPANY_ASTRO"
 
 default_args={
     'email': ['pablo.diaz@moelis.com'],
