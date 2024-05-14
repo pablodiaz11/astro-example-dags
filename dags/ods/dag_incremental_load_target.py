@@ -34,14 +34,14 @@ with DAG(
 
     call_sp_sql = f"call {snowflake_sp}(%(initial_flag)s, %(source_db)s, %(source_schema)s, %(source_stream)s, %(target_db)s, %(target_schema)s, %(target_table)s, %(mapping_id)s)"
     params = {
-        'initial_flag':"",
-        'source_db':"",
-        'source_schema':"",
-        'source_stream':"",
-        'target_db':"",
-        'target_schema':"",
-        'target_table':"", 
-        'mapping_id':""
+        'initial_flag':"N",
+        'source_db':"FIVETRAN",
+        'source_schema':"MCONNECT",
+        'source_stream':"ACCOUNT_STREAM",
+        'target_db':"ODS",
+        'target_schema':"MCONNECT",
+        'target_table':"ACCOUNT", 
+        'mapping_id':"ID"
     }
 
     incremental_load_target = SnowflakeOperator(
