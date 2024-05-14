@@ -10,13 +10,13 @@ import pendulum
 
 local_tz = pendulum.timezone("America/New_York")
 dag_id = "dag_call_snowflake_sp"
-SNOWFLAKE_CONN_ID = "snow_devtest"
-SNOWFLAKE_SP = "STAGE.SP_PROCESS_RUN_END"
+snowflake_conn_id = "snow_devtest"
+snowflake_sp = "STAGE.SP_PROCESS_RUN_END"
 
 default_args={
     'email': ['pablo.diaz@moelis.com'],
     'email_on_failure': True,
-    "snowflake_conn_id": SNOWFLAKE_CONN_ID,
+    "snowflake_conn_id": snowflake_conn_id,
     "retries": 1,
     'retry_delay': timedelta(seconds=10),
 }
@@ -38,8 +38,8 @@ with DAG(
         'status':"Failed"
     }
 
-    #sql_call_sp = f"call {SNOWFLAKE_SP}(?, ?, ?)"
-    sql_call_sp = f"call {SNOWFLAKE_SP}(%(feed_date)s, %(process_name)s, %(status)s)"
+    #sql_call_sp = f"call {snowflake_sp}(?, ?, ?)"
+    sql_call_sp = f"call {snowflake_sp}(%(feed_date)s, %(process_name)s, %(status)s)"
 
     populate_interaction_company = SnowflakeOperator(
         task_id = "populate_interaction_company",
