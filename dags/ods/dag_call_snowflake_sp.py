@@ -38,8 +38,8 @@ with DAG(
         'status':"Failed"
     }
 
-    sql_call_sp = f"call {SNOWFLAKE_SP}(?, ?, ?)"
-    #sql_call_sp = f"call {SNOWFLAKE_SP}(%(feed_date)s, %(process_name)s, %(status)s)"
+    #sql_call_sp = f"call {SNOWFLAKE_SP}(?, ?, ?)"
+    sql_call_sp = f"call {SNOWFLAKE_SP}(%(feed_date)s, %(process_name)s, %(status)s)"
 
     populate_interaction_company = SnowflakeOperator(
         task_id = "populate_interaction_company",
